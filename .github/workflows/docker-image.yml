@@ -1,0 +1,39 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Docker login
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: |
+        echo "Iniciando login"
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+        echo "Fin del login"
+
+    - name: name: Build Docker Image
+      run: |
+        docker build -t jeanjiron/graphql-actions:0.0.2 .
+        docker build -t jeanjiron/graphql-actions:latest .
+
+    - name: name: Push Docker Image
+      run: |
+        docker push jeanjiron/graphql-actions:0.0.2
+        docker push jeanjiron/graphql-actions:latest
+    
+    
+      #run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
