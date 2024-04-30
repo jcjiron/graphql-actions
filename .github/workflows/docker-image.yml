@@ -16,23 +16,37 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Git semantic version
+      uses: PaulHatch/semantic-version@v4.0.3
+      with:
+        major_pattern: "major:"
+        minor_pattern: "feat:"
+        format: "${major}.${minor}.${patch}-prereleases${increment}"
+      id: version
+      
     - name: Docker login
       env:
         DOCKER_USER: ${{secrets.DOCKER_USER}}
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        NEW_VERSION: ${{ steps.version.outputs.version }}
       run: |
         echo "Iniciando login"
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
         echo "Fin del login"
 
-    - name: name: Build Docker Image
+    - name: Build Docker Image
+      env:
+        NEW_VERSION: ${{ steps.version.outputs.version }}
       run: |
-        docker build -t jeanjiron/graphql-actions:0.0.2 .
+        echo "New version: $NEW_VERSION"
+        docker build -t jeanjiron/graphql-actions:$NEW_VERSION .
         docker build -t jeanjiron/graphql-actions:latest .
 
-    - name: name: Push Docker Image
+    - name: Push Docker Image
+      env:
+        NEW_VERSION: ${{ steps.version.outputs.version }}
       run: |
-        docker push jeanjiron/graphql-actions:0.0.2
+        docker push jeanjiron/graphql-actions:$NEW_VERSION
         docker push jeanjiron/graphql-actions:latest
     
     
